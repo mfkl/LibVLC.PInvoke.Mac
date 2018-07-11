@@ -6,8 +6,8 @@ namespace LibVLC.PInvoke.Mac
 {
     public partial class ViewController : NSViewController
     {
-        const string LibraryName = "@executable_path/lib/libvlc.5.dylib";
-        //const string LibraryName = "libvlc.5";
+        //const string LibraryName = "@executable_path/lib/libvlc.5.dylib";
+        const string LibraryName = "libvlc.5";
 
         public ViewController(IntPtr handle) : base(handle)
         {
