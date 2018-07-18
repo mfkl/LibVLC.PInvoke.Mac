@@ -29,7 +29,7 @@
     <UseRefCounting>true</UseRefCounting>
     <PlatformTarget>x64</PlatformTarget>
     <AOTMode>None</AOTMode>
-    <MonoBundlingExtraArgs>--link_flags="-rpath '@executable_path/../MonoBundle'"</MonoBundlingExtraArgs>
+    <MonoBundlingExtraArgs>--link_flags="-rpath '@executable_path/../MonoBundle/lib' -rpath '@executable_path/../MonoBundle/plugins'" -v</MonoBundlingExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>pdbonly</DebugType>
@@ -86,26 +86,42 @@
     <InterfaceDefinition Include="Main.storyboard" />
   </ItemGroup>
   <ItemGroup>
-    <NativeReference Include="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha\build\osx-x64\lib\libvlc.5.dylib">
-      <Kind>Dynamic</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
-    <NativeReference Include="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha\build\osx-x64\lib\libvlccore.9.dylib">
-      <Kind>Dynamic</Kind>
-      <SmartLink>False</SmartLink>
-    </NativeReference>
+   <CustomNativeRefs Include="libvlccore.9.dylib">
+       <BaseName>libvlccore.dylib</BaseName>
+   </CustomNativeRefs>
+   <CustomNativeRefs Include="libvlc.5.dylib">
+       <BaseName>libvlc.dylib</BaseName>
+   </CustomNativeRefs>
   </ItemGroup>
+ 
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
-  <Import Project="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha\build\VideoLAN.LibVLC.Mac.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha\build\VideoLAN.LibVLC.Mac.targets')" />
-
   <PropertyGroup>
-    <CreateAppBundleDependsOn>$(CreateAppBundleDependsOn);CreateNativeRefSymLinks1;CreateNativeRefSymLinks2</CreateAppBundleDependsOn>
-  </PropertyGroup>
+            <CreateAppBundleDependsOn>$(CreateAppBundleDependsOn);CopyCustomNativeReferences;CopyPlugins</CreateAppBundleDependsOn>
+            <CustomNativeRefSource>..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\osx-x64\lib\</CustomNativeRefSource>
+    </PropertyGroup>
+   <ItemGroup>
+        <PluginsSource Include="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\osx-x64\plugins\**\*.dylib" />
+   </ItemGroup>
 
-  <Target Name="CreateNativeRefSymLinks1" Inputs="$(AppBundleDir)/Contents/MonoBundle/libvlccore.9.dylib" Outputs="$(AppBundleDir)/Contents/MonoBundle/libvlccore.dylib">
-    <Exec Command='ln -s "libvlccore.9.dylib" "libvlccore.dylib"' WorkingDirectory="$(AppBundleDir)/Contents/MonoBundle"/>
-  </Target>
-  <Target Name="CreateNativeRefSymLinks2" Inputs="$(AppBundleDir)/Contents/MonoBundle/libvlc.5.dylib" Outputs="$(AppBundleDir)/Contents/MonoBundle/libvlc.dylib">
-    <Exec Command='ln -s "libvlc.5.dylib" "libvlc.dylib"' WorkingDirectory="$(AppBundleDir)/Contents/MonoBundle"/>
-  </Target>
+ 
+
+<Target Name="CopyCustomNativeReferences">
+     <!--    <Copy SourceFiles="$(CustomNativeRefSource)/%(CustomNativeRefs.Identity)" DestinationFolder="$(AppBundleDir)/Contents/MacOS/lib/" />
+    <Exec Command="ln -s &quot;%(CustomNativeRefs.Identity)&quot; &quot;%(CustomNativeRefs.BaseName)&quot;" WorkingDirectory="$(AppBundleDir)/Contents/MacOS/lib/" />
+        -->
+<Copy SourceFiles="$(CustomNativeRefSource)/%(CustomNativeRefs.Identity)" DestinationFolder="$(AppBundleDir)/Contents/MonoBundle/lib/" />
+    <Exec Command="ln -s &quot;%(CustomNativeRefs.Identity)&quot; &quot;%(CustomNativeRefs.BaseName)&quot;" 
+          WorkingDirectory="$(AppBundleDir)/Contents/MonoBundle/lib/"/>
+</Target>
+
+<Target Name="CopyPlugins">
+    <Copy SourceFiles="@(PluginsSource)" DestinationFiles="@(PluginsSource-&gt;'$(AppBundleDir)/Contents/MonoBundle/plugins/%(RecursiveDir)%(Filename)%(Extension)')" />
+
+<!--   <Copy SourceFiles="@(PluginsSource)" DestinationFiles="@(PluginsSource->'$(AppBundleDir)/Contents/MonoBundle/plugins/%(RecursiveDir)%(Filename)%(Extension)')" />-->
+
+    <Exec Command="xcrun -sdk macosx install_name_tool -id @executable_path/../MonoBundle/plugins/&quot;%(PluginsSource.Identity)&quot; &quot;%(FullPath)&quot;" />
+
+<!--            <Exec Command="xcrun -sdk macosx install_name_tool -id @executable_path/../MacOS/plugins/&quot;%(PluginsSource.Identity)&quot; &quot;%(FullPath)&quot;" />-->
+</Target>
+<Import Project="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\VideoLAN.LibVLC.Mac.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\VideoLAN.LibVLC.Mac.targets')" />
 </Project>
