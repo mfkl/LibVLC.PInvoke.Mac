@@ -103,19 +103,13 @@
         <PluginsSource Include="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\osx-x64\plugins\**\*.dylib" />
    </ItemGroup>
 
-<Target Name="CopyCustomNativeReferences" 
-        Condition="!Exists('$(AppBundleDir)/Contents/MonoBundle/lib/libvlc.dylib')">
-    <Copy SourceFiles="$(CustomNativeRefSource)/%(CustomNativeRefs.Identity)" 
-        DestinationFolder="$(AppBundleDir)/Contents/MonoBundle/lib/" />
-    <Exec Command="ln -s &quot;%(CustomNativeRefs.Identity)&quot; &quot;%(CustomNativeRefs.BaseName)&quot;" 
-        WorkingDirectory="$(AppBundleDir)/Contents/MonoBundle/lib/"/>
+<Target Name="CopyCustomNativeReferences" Condition="!Exists('$(AppBundleDir)/Contents/MonoBundle/lib/libvlc.dylib')">
+    <Copy SourceFiles="$(CustomNativeRefSource)/%(CustomNativeRefs.Identity)" DestinationFolder="$(AppBundleDir)/Contents/MonoBundle/lib/" />
+    <Exec Command="ln -s &quot;%(CustomNativeRefs.Identity)&quot; &quot;%(CustomNativeRefs.BaseName)&quot;" WorkingDirectory="$(AppBundleDir)/Contents/MonoBundle/lib/" />
 </Target>
 
-<Target Name="CopyPlugins" 
-        Condition="!Exists('$(AppBundleDir)/Contents/MonoBundle/plugins/liba52_plugin.dylib')">
-    <Copy SourceFiles="@(PluginsSource)" 
-          DestinationFiles="@(PluginsSource-&gt;'$(AppBundleDir)/Contents/MonoBundle/plugins/%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"/>
+<Target Name="CopyPlugins" Condition="!Exists('$(AppBundleDir)/Contents/MonoBundle/plugins/liba52_plugin.dylib')">
+    <Copy SourceFiles="@(PluginsSource)" DestinationFiles="@(PluginsSource-&gt;'$(AppBundleDir)/Contents/MonoBundle/plugins/%(RecursiveDir)%(Filename)%(Extension)')"/>
     <Exec Command="xcrun -sdk macosx install_name_tool -id @executable_path/../MonoBundle/plugins/&quot;%(PluginsSource.Identity)&quot; &quot;%(FullPath)&quot;" />
 </Target>
 <Import Project="..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\VideoLAN.LibVLC.Mac.targets" Condition="Exists('..\packages\VideoLAN.LibVLC.Mac.3.0.0-alpha1\build\VideoLAN.LibVLC.Mac.targets')" />
